@@ -22,9 +22,10 @@ on:
         required: true
         type: boolean
         default: true
-  push:
-    branches:
-      - main
+  # Uncomment the lines below to auto-trigger on push once your self-hosted runner is online:
+  # push:
+  #   branches:
+  #     - main
 
 concurrency:
   group: build-all-${{ github.ref }}

@@ -12,9 +12,10 @@ on:
           - preview
           - production
           - development
-  push:
-    branches:
-      - main
+  # Uncomment the lines below to auto-trigger on push once your self-hosted runner is online:
+  # push:
+  #   branches:
+  #     - main
 
 concurrency:
   group: android-build-${{ github.ref }}

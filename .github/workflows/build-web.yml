@@ -2,9 +2,10 @@ name: Build Web
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
+  # Uncomment the lines below to auto-trigger on push once your self-hosted runner is online:
+  # push:
+  #   branches:
+  #     - main
 
 concurrency:
   group: web-build-${{ github.ref }}
