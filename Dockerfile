@@ -22,11 +22,10 @@ RUN mkdir -p /etc/apt/keyrings && \
   wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc >/dev/null && \
   echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list
 
-# Install Temurin JDK 17, CMake, native compilation tools and utilities
+# Install Temurin JDK 17, native compilation tools and utilities
 RUN apt-get -qq update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   temurin-${JAVA_VERSION}-jdk \
   iproute2 \
-  cmake \
   build-essential \
   swig \
   curl \
@@ -42,7 +41,7 @@ ENV JAVA_HOME=/usr/lib/jvm/temurin-${JAVA_VERSION}-jdk-amd64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 ################################################################################
-# Stage 2: Install Android SDK, NDK, Build Tools, and CMake
+# Stage 2: Install Android SDK, NDK, Build Tools, and CMake 3.22.1
 ################################################################################
 FROM java AS android
 ARG COMPILE_SDK
@@ -81,6 +80,10 @@ RUN attempt=1; \
 # Symlink standard SDK root to /opt/android-sdk for compatibility across environments
 RUN ln -s ${ANDROID_ROOT}/sdk /opt/android-sdk
 
+# Symlink Android CMake 3.22.1 to /usr/local/bin to guarantee CMake 3.22.1 precedence
+RUN ln -sf ${ANDROID_ROOT}/sdk/cmake/3.22.1/bin/cmake /usr/local/bin/cmake && \
+  ln -sf ${ANDROID_ROOT}/sdk/cmake/3.22.1/bin/ninja /usr/local/bin/ninja
+
 ENV ANDROID_SDK_ROOT=${ANDROID_ROOT}/sdk
 ENV ANDROID_HOME=${ANDROID_ROOT}/sdk
 
@@ -111,8 +114,8 @@ RUN npm install -g eas-cli@${EAS_CLI_VERSION}
 RUN mkdir -p /root/.gradle /root/.m2 /root/.npm /root/.local/share/pnpm /root/.expo \
   /runner-data /runner/_work /scripts /artifacts
 
-# Configure PATH with Java, Android tools, CMake, and local binaries
-ENV PATH="${PATH}:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/build-tools/36.0.0:/usr/local/lib/android/sdk/cmake/3.22.1/bin"
+# Configure PATH with CMake 3.22.1, Android tools, Java, and local binaries
+ENV PATH="/usr/local/lib/android/sdk/cmake/3.22.1/bin:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools:/usr/local/lib/android/sdk/build-tools/36.0.0:${JAVA_HOME}/bin:${PATH}"
 
 # Copy environment verification script
 COPY scripts/verify-ci-environment.sh /scripts/verify-ci-environment.sh

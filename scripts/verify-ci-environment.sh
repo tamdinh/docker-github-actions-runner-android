@@ -79,7 +79,7 @@ check_component "Platform Tools" "$SDK_DIR/platform-tools/adb"
 check_component "Platform android-36" "$SDK_DIR/platforms/android-36/android.jar"
 check_component "Build Tools 36.0.0" "$SDK_DIR/build-tools/36.0.0/aapt2"
 check_component "NDK 27.1.12297006" "$SDK_DIR/ndk/27.1.12297006/source.properties"
-check_component "CMake 3.22.1" "$SDK_DIR/cmake/3.22.1/bin/ninja"
+check_component "CMake 3.22.1 Binary" "$SDK_DIR/cmake/3.22.1/bin/cmake"
 
 echo ""
 echo "=== Installed Packages via sdkmanager ==="
