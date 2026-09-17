@@ -23,8 +23,9 @@ services:
       RUNNER_LABELS: ${RUNNER_LABELS:-self-hosted,linux,x64,expo,android,web,vps}
       CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner-data
       DISABLE_AUTOMATIC_DEREGISTRATION: "true"
-      ANDROID_HOME: /opt/android-sdk
-      ANDROID_SDK_ROOT: /opt/android-sdk
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.1.12297006
       JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
     volumes:
       - runner-data:/runner-data

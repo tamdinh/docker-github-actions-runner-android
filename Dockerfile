@@ -86,6 +86,7 @@ RUN ln -sf ${ANDROID_ROOT}/sdk/cmake/3.22.1/bin/cmake /usr/local/bin/cmake && \
 
 ENV ANDROID_SDK_ROOT=${ANDROID_ROOT}/sdk
 ENV ANDROID_HOME=${ANDROID_ROOT}/sdk
+ENV ANDROID_NDK_HOME=${ANDROID_ROOT}/sdk/ndk/27.1.12297006
 
 ################################################################################
 # Stage 3: Install Node.js 22.23.1, Corepack, pnpm 11.9.0, EAS CLI

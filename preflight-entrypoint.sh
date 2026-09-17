@@ -21,6 +21,14 @@
 
 log() { echo "[preflight] $*"; }
 
+# Normalize Android SDK environment variables to prevent React Native Gradle Plugin mismatch
+normalize_android_env() {
+  local target_sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+  export ANDROID_HOME="$target_sdk"
+  export ANDROID_SDK_ROOT="$target_sdk"
+  export ANDROID_NDK_HOME="${target_sdk}/ndk/27.1.12297006"
+}
+
 # The runner's IsConfigured()/HasCredentials() checks treat .runner_migrated /
 # .credentials_migrated as equivalent to the primary files, so a wipe must
 # remove all five or config.sh refuses to re-register while run.sh can't load
@@ -118,5 +126,6 @@ preflight() {
   esac
 }
 
+normalize_android_env
 preflight
 exec /entrypoint.sh "$@"
