@@ -1,0 +1,88 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile (preview, production, development)"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
+          - development
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-android:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - expo
+      - android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify CI Environment
+        run: |
+          if [ -x /scripts/verify-ci-environment.sh ]; then
+            /scripts/verify-ci-environment.sh
+          else
+            echo "=== Environment Info ==="
+            java -version
+            node --version
+            npm --version
+            pnpm --version
+            eas --version
+            sdkmanager --version
+            adb version
+          fi
+
+      - name: Setup pnpm & Install Dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Expo Doctor Validation
+        run: |
+          pnpm exec expo-doctor
+
+      - name: Build Android via EAS Local
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PROFILE: ${{ inputs.profile || 'preview' }}
+        run: |
+          mkdir -p ./artifacts
+          EXTENSION="apk"
+          if [ "$PROFILE" = "production" ]; then
+            EXTENSION="aab"
+          fi
+          OUTPUT_PATH="./artifacts/app-${PROFILE}.${EXTENSION}"
+
+          echo "Building Android for profile: ${PROFILE} -> ${OUTPUT_PATH}"
+          eas build \
+            --platform android \
+            --profile "${PROFILE}" \
+            --local \
+            --non-interactive \
+            --output "${OUTPUT_PATH}"
+
+          echo "Build finished. Verifying artifact..."
+          ls -lh ./artifacts/
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.profile || 'preview' }}-build
+          path: ./artifacts/
+          if-no-files-found: error

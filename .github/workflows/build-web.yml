@@ -1,0 +1,59 @@
+name: Build Web
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: web-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-web:
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - expo
+      - web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify CI Environment
+        run: |
+          if [ -x /scripts/verify-ci-environment.sh ]; then
+            /scripts/verify-ci-environment.sh
+          else
+            echo "=== Environment Info ==="
+            node --version
+            npm --version
+            pnpm --version
+          fi
+
+      - name: Setup pnpm & Install Dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Expo Doctor Validation
+        run: |
+          pnpm exec expo-doctor
+
+      - name: Build Web Application
+        run: |
+          echo "Exporting Expo static web..."
+          pnpm exec expo export --platform web
+
+          echo "Export complete. Verifying output directory..."
+          ls -la dist/
+
+      - name: Upload Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist/
+          if-no-files-found: error

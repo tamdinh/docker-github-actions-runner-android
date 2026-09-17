@@ -1,0 +1,127 @@
+name: Build All (Android & Web)
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "EAS build profile for Android"
+        required: true
+        default: "preview"
+        type: choice
+        options:
+          - preview
+          - production
+          - development
+      build_android:
+        description: "Build Android application"
+        required: true
+        type: boolean
+        default: true
+      build_web:
+        description: "Build Web application"
+        required: true
+        type: boolean
+        default: true
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: build-all-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-android:
+    if: ${{ github.event_name == 'push' || inputs.build_android }}
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - expo
+      - android
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify CI Environment
+        run: |
+          if [ -x /scripts/verify-ci-environment.sh ]; then
+            /scripts/verify-ci-environment.sh
+          fi
+
+      - name: Setup pnpm & Install Dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Expo Doctor Validation
+        run: |
+          pnpm exec expo-doctor
+
+      - name: Build Android via EAS Local
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PROFILE: ${{ inputs.profile || 'preview' }}
+        run: |
+          mkdir -p ./artifacts
+          EXTENSION="apk"
+          if [ "$PROFILE" = "production" ]; then
+            EXTENSION="aab"
+          fi
+          OUTPUT_PATH="./artifacts/app-${PROFILE}.${EXTENSION}"
+
+          echo "Building Android for profile: ${PROFILE} -> ${OUTPUT_PATH}"
+          eas build \
+            --platform android \
+            --profile "${PROFILE}" \
+            --local \
+            --non-interactive \
+            --output "${OUTPUT_PATH}"
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ inputs.profile || 'preview' }}-build
+          path: ./artifacts/
+          if-no-files-found: error
+
+  build-web:
+    if: ${{ github.event_name == 'push' || inputs.build_web }}
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - expo
+      - web
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify CI Environment
+        run: |
+          if [ -x /scripts/verify-ci-environment.sh ]; then
+            /scripts/verify-ci-environment.sh
+          fi
+
+      - name: Setup pnpm & Install Dependencies
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+
+      - name: Expo Doctor Validation
+        run: |
+          pnpm exec expo-doctor
+
+      - name: Build Web Application
+        run: |
+          echo "Exporting Expo static web..."
+          pnpm exec expo export --platform web
+
+      - name: Upload Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist/
+          if-no-files-found: error

@@ -1,2 +1,9 @@
 .env
-.idea
+docker/.env
+.env.local
+.env.*.local
+.idea/
+.vscode/
+artifacts/
+dist/
+*.log
