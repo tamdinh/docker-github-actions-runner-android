@@ -66,7 +66,8 @@ preflight() {
   local agent_id
   agent_id=$(sed '1s/^\xEF\xBB\xBF//' "$dir/.runner" | jq -r '.agentId // empty' 2>/dev/null)
   if [ -z "$agent_id" ]; then
-    log "could not read agentId from $dir/.runner; leaving as-is"
+    log "could not read valid agentId from $dir/.runner; wiping corrupted registration"
+    wipe_registration "$dir"
     return 0
   fi
 

@@ -2,10 +2,12 @@ services:
   github-runner:
     image: ghcr.io/tamdinh/docker-github-actions-runner-android:expo57-node22-android36-v1
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      RUNNER_NAME: ${RUNNER_NAME:-expo-android-runner}
+      REPO_URL: ${REPO_URL:-https://github.com/tamdinh/dokploy-mobile}
+      RUNNER_TOKEN: ${RUNNER_TOKEN:-}
+      ACCESS_TOKEN: ${ACCESS_TOKEN:-}
+      EXPO_TOKEN: ${EXPO_TOKEN:-}
+      RUNNER_NAME: ${RUNNER_NAME:-expo-android-runner-dokploy-mobile}
       RUNNER_WORKDIR: ${RUNNER_WORKDIR:-/runner/_work}
       RUNNER_LABELS: ${RUNNER_LABELS:-self-hosted,linux,x64,expo,android,web,vps,expo-android-runner}
       CONFIGURED_ACTIONS_RUNNER_FILES_DIR: /runner-data
